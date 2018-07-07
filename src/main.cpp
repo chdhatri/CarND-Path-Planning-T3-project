@@ -296,12 +296,12 @@ int main() {
                                 // if an observed car is on the left side
                                 if (lane_obsvd == (lane-1)){
                                     if (space < space_on_left) {space_on_left = space;}
-                                    left_is_free = false; // left lane is not free to lane change
+                                    left_is_free = false; // left lane is not free for lane change
                                 }
                                 // if an observed car is on the right side
                                 if (lane_obsvd == (lane+1)){
                                     if (space < space_on_right) {space_on_right = space;}
-                                    right_is_free = false; // right lane is not free to lane change
+                                    right_is_free = false; // right lane is not free for lane change
                                 }
                             }
                             // if car is at the back, within 20m
@@ -320,7 +320,7 @@ int main() {
                         if ((d<2+4*lane+2) && d > (2+4*lane-2))
                         {
                             // if observed car is too close
-                            if ((check_car_s > car_s) && ((check_car_s-car_s)<30))
+                            if ((check_car_s > car_s) && abs(car_dist) < 30)
                             {
                                 too_close = true;
                                 // if an observed car is on the left side
@@ -336,33 +336,33 @@ int main() {
                     }
                     // if car is too close
                     
-                   /* if(too_close) {
-                        ref_vel -= .224;
-                    } else if(ref_vel < 49.5) {
-                        ref_vel += .224;
-                    }*/
                     
                     if (too_close)
                     {
                         //if there is vehicle ahead reduce the speed
-                        ref_vel -= .224;
+                        ref_vel -= .224 * 2;
+                        //change the lanes safely if lane is available
+                        //if the lane is far most left lane and Right lane is free
                         if ((lane==0) && right_is_free)
                         {
                             lane = 1;
                         }
+                        // If the lane is middle one
                         else if (lane==1)
                         {
+                            //both left and right lanes are free
                             if (left_is_free && right_is_free)
                             {
+                                //check the available space for lane change
                                 if (space_on_right > space_on_left)
                                 {
                                     lane += 1;
                                 } else {
                                     lane -= 1;
                                 }
-                            } else if (left_is_free) {
+                            } else if (left_is_free) {// if only left lane is free
                                 lane -= 1;
-                            } else if(right_is_free) {
+                            } else if(right_is_free) { // if only right lane is free
                                 lane += 1;
                             }
                         }
@@ -379,10 +379,6 @@ int main() {
                         }
                     }
                     
-                    
-
-                    
-                 
                     
                     //create a list of widely spaced (x,y) waypoints, evenly spaced at 30m
                     //later we will interp[olate these waypoints with a spline and fill it in with more points that control
