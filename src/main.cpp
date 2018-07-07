@@ -253,8 +253,8 @@ int main() {
                     
                     
                     bool too_close = false;
-                    bool left_is_free = true;
-                    bool right_is_free = true;
+                    bool left_lane_free = true;
+                    bool right_lane_free = true;
                     
                     double space_on_left = 10000.0;
                     double space_on_right = 10000.0;
@@ -263,14 +263,13 @@ int main() {
                     // check which lanes are not free depending on the ego vehichle's lane
                     if (lane==0)
                     {
-                        left_is_free = false;
+                        left_lane_free = false;
                     }
                     if (lane==2)
                     {
-                        right_is_free = false;
+                        right_lane_free = false;
                     }
                     
-                    //find ref_v to use
                     for(int i =0; i < sensor_fusion.size(); i++)
                     {
                             float d = sensor_fusion[i][6];
@@ -282,68 +281,73 @@ int main() {
                             //Estimate car s position after executing previous trajectory
                             check_car_s += ((double)prev_size * .02 * check_speed);
                         
-                            int lane_obsvd = fabs(d/4);
+                            int obsvd_car_lane = fabs(d/4);
 
                             
                             double space = check_car_s - end_path_s;
                         
                             //check dist between observed car and ego car
-                            double car_dist = check_car_s - car_s;
+                            double dist_between = check_car_s - car_s;
                         
                             // if the observed car is ahead and distance is too close
-                            if ((car_dist > 0) && (car_dist < 30))
+                            if ((dist_between > 0) && (dist_between < 30))
                             {
                                 // if an observed car is on the left side
-                                if (lane_obsvd == (lane-1)){
-                                    if (space < space_on_left) {space_on_left = space;}
-                                    left_is_free = false; // left lane is not free for lane change
+                                if (obsvd_car_lane == (lane-1)){
+                                    if (space < space_on_left) {
+                                        space_on_left = space;
+                                        
+                                    }
+                                    left_lane_free = false; // left lane is not free for lane change
                                 }
                                 // if an observed car is on the right side
-                                if (lane_obsvd == (lane+1)){
-                                    if (space < space_on_right) {space_on_right = space;}
-                                    right_is_free = false; // right lane is not free for lane change
+                                if (obsvd_car_lane == (lane+1)){
+                                    if (space < space_on_right) {
+                                        space_on_right = space;
+                                        
+                                    }
+                                    right_lane_free = false; // right lane is not free for lane change
                                 }
                             }
                             // if car is at the back, within 20m
-                            else if ((car_dist < 0) && (car_dist > -30))
+                            else if ((dist_between < 0) && (dist_between > -30))
                             {
                                 // if an observed car is on the left side
-                                if (lane_obsvd == (lane-1)){
-                                    left_is_free = false;
+                                if (obsvd_car_lane == (lane-1)){
+                                    left_lane_free = false;
                                 }
                                 // if an observed car is on the right side
-                                if (lane_obsvd == (lane+1)){ // if an observed car is on the right side
-                                    right_is_free = false;
+                                if (obsvd_car_lane == (lane+1)){ // if an observed car is on the right side
+                                    right_lane_free = false;
                                 }
                             }
                         // if observed car is in the ego car lane lane:
                         if ((d<2+4*lane+2) && d > (2+4*lane-2))
                         {
                             // if observed car is too close
-                            if ((check_car_s > car_s) && abs(car_dist) < 30)
+                            if ((check_car_s > car_s) && abs(dist_between) < 30)
                             {
                                 too_close = true;
                                 // if an observed car is on the left side
-                                if (lane_obsvd == (lane-1)){
-                                    left_is_free = false;
+                                if (obsvd_car_lane == (lane-1)){
+                                    left_lane_free = false;
                                 }
                                 // if an observed car is on the right side
-                                if (lane_obsvd == (lane+1)){
-                                    right_is_free = false;
+                                if (obsvd_car_lane == (lane+1)){
+                                    right_lane_free = false;
                                 }
                             }
                         }
                     }
-                    // if car is too close
-                    
-                    
+                    // if obsvd_car is too close
                     if (too_close)
                     {
                         //if there is vehicle ahead reduce the speed
-                        ref_vel -= .224 * 2;
+                        ref_vel -= (.224 * 2);
+                        
                         //change the lanes safely if lane is available
                         //if the lane is far most left lane and Right lane is free
-                        if ((lane==0) && right_is_free)
+                        if ((lane==0) && right_lane_free)
                         {
                             lane = 1;
                         }
@@ -351,7 +355,7 @@ int main() {
                         else if (lane==1)
                         {
                             //both left and right lanes are free
-                            if (left_is_free && right_is_free)
+                            if (left_lane_free && right_lane_free)
                             {
                                 //check the available space for lane change
                                 if (space_on_right > space_on_left)
@@ -360,22 +364,22 @@ int main() {
                                 } else {
                                     lane -= 1;
                                 }
-                            } else if (left_is_free) {// if only left lane is free
+                            } else if (left_lane_free) {// if only left lane is free
                                 lane -= 1;
-                            } else if(right_is_free) { // if only right lane is free
+                            } else if(right_lane_free) { // if only right lane is free
                                 lane += 1;
                             }
                         }
-                        else if ((lane==2) && left_is_free)
+                        else if ((lane==2) && left_lane_free)
                         {
                             lane = 1;
-                        } else if (lane>2) //fail fast condition
+                        } else if (lane>2) //boundary condition
                         {
                             lane = 2;
                         }
                     } else {
                         if(ref_vel < 49.5) {
-                            ref_vel += .224;
+                            ref_vel += (.224 * 2);
                         }
                     }
                     
