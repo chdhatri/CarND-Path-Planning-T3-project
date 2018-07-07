@@ -310,7 +310,7 @@ int main() {
                                 }
                             }
                             // if car is at the back, within 20m
-                            else if ((dist_between < 0) && (dist_between > -30))
+                            else if ((dist_between < 0) && (dist_between > -20))
                             {
                                 // if an observed car is on the left side
                                 if (obsvd_car_lane == (lane-1)){
