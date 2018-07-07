@@ -286,56 +286,65 @@ int main() {
 
                             
                             double space = check_car_s - end_path_s;
-                            
+                        
+                            //check dist between observed car and ego car
                             double car_dist = check_car_s - car_s;
-                            
-                            //check s values greater than mine and s gap
+                        
+                            // if the observed car is ahead and distance is too close
                             if ((car_dist > 0) && (car_dist < 30))
                             {
-                                if (lane_obsvd == (lane-1)){ // if an observed car is on the left side
+                                // if an observed car is on the left side
+                                if (lane_obsvd == (lane-1)){
                                     if (space < space_on_left) {space_on_left = space;}
-                                    left_is_free = false;
+                                    left_is_free = false; // left lane is not free to lane change
                                 }
-                                if (lane_obsvd == (lane+1)){ // if an observed car is on the right side
+                                // if an observed car is on the right side
+                                if (lane_obsvd == (lane+1)){
                                     if (space < space_on_right) {space_on_right = space;}
-                                    right_is_free = false;
+                                    right_is_free = false; // right lane is not free to lane change
                                 }
                             }
                             // if car is at the back, within 20m
-                            else if ((car_dist < 0) && (car_dist > -20))
+                            else if ((car_dist < 0) && (car_dist > -30))
                             {
-                                if (lane_obsvd == (lane-1)){ // if an observed car is on the left side
+                                // if an observed car is on the left side
+                                if (lane_obsvd == (lane-1)){
                                     left_is_free = false;
                                 }
+                                // if an observed car is on the right side
                                 if (lane_obsvd == (lane+1)){ // if an observed car is on the right side
                                     right_is_free = false;
                                 }
                             }
-                        // if observed car is in my lane:
+                        // if observed car is in the ego car lane lane:
                         if ((d<2+4*lane+2) && d > (2+4*lane-2))
                         {
                             // if observed car is too close
                             if ((check_car_s > car_s) && ((check_car_s-car_s)<30))
                             {
                                 too_close = true;
-                                
-                                if (lane_obsvd == (lane-1)){ // if an observed car is on the left side
-                                    // if (space < space_on_left) {space_on_left = space;}
+                                // if an observed car is on the left side
+                                if (lane_obsvd == (lane-1)){
                                     left_is_free = false;
                                 }
-                                if (lane_obsvd == (lane+1)){ // if an observed car is on the right side
-                                    // if (space < space_on_right) {space_on_right = space;}
+                                // if an observed car is on the right side
+                                if (lane_obsvd == (lane+1)){
                                     right_is_free = false;
                                 }
                             }
                         }
                     }
                     // if car is too close
+                    
+                    if(too_close) {
+                        ref_vel -= .224;
+                    } else if(ref_vel < 49.5) {
+                        ref_vel += .224;
+                    }
+                    
                     if (too_close)
                     {
-                        // cout << "\nleft_side: " << left_is_free << ", " << space_on_left
-                        //     << " right_side: " << right_is_free << ", " << space_on_right
-                        //     << endl;
+                        ref_vel -= .224;
                         if ((lane==0) && right_is_free)
                         {
                             lane = 1;
@@ -368,11 +377,7 @@ int main() {
                     }
 
                     
-                    if(too_close) {
-                        ref_vel -= .224;
-                    } else if(ref_vel < 49.5) {
-                        ref_vel += .224;
-                    }
+                 
                     
                     //create a list of widely spaced (x,y) waypoints, evenly spaced at 30m
                     //later we will interp[olate these waypoints with a spline and fill it in with more points that control
