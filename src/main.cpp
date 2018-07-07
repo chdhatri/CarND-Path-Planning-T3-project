@@ -336,14 +336,15 @@ int main() {
                     }
                     // if car is too close
                     
-                    if(too_close) {
+                   /* if(too_close) {
                         ref_vel -= .224;
                     } else if(ref_vel < 49.5) {
                         ref_vel += .224;
-                    }
+                    }*/
                     
                     if (too_close)
                     {
+                        //if there is vehicle ahead reduce the speed
                         ref_vel -= .224;
                         if ((lane==0) && right_is_free)
                         {
@@ -368,13 +369,17 @@ int main() {
                         else if ((lane==2) && left_is_free)
                         {
                             lane = 1;
+                        } else if (lane>2) //fail fast condition
+                        {
+                            lane = 2;
+                        }
+                    } else {
+                        if(ref_vel < 49.5) {
+                            ref_vel += .224;
                         }
                     }
                     
-                    if (lane>2)
-                    {
-                        lane = 2;
-                    }
+                    
 
                     
                  
